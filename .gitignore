@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environments
+.venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Test output (reference snapshots live in tests/snapshots and are committed)
+tests/output/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
