@@ -2,8 +2,8 @@
 
 Turn a brand kit and Markdown into consistently branded, multi-page PDFs.
 
-> **Status: pre-alpha.** Plain documents render (headings, paragraphs, lists, emphasis, links,
-> code). Letterheads, page numbers, tables, checklists and callouts are coming next.
+> **Status: pre-alpha.** Documents render with generated or supplied letterheads and page
+> numbers. Tables, checklists and callouts are coming next.
 
 ## Usage
 
@@ -68,6 +68,7 @@ Requires [uv](https://docs.astral.sh/uv/).
 ```sh
 uv sync          # create the virtualenv and install dev dependencies
 uv run pytest    # run the test suite
+BRANDPDF_UPDATE_SNAPSHOTS=1 uv run pytest   # accept new visual snapshots
 uv run brandpdf --help
 ```
 

@@ -46,6 +46,12 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["-ra", "--strict-markers"]
+filterwarnings = [
+    "error::DeprecationWarning:brandpdf.*",
+    "error::DeprecationWarning:pypdf.*",
+    # PyMuPDF (test-only) imports SWIG types without __module__ on Python 3.12+
+    "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 100

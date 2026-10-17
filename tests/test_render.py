@@ -158,16 +158,15 @@ def test_bold_and_italic_with_built_in_fonts() -> None:
 
 def test_page_size_and_margins_follow_the_brand() -> None:
     brand = make_brand(
-        page={"size": "Letter", "margins_mm": {"top": 30, "left": 40, "right": 15, "bottom": 20}}
+        page={"size": "Letter", "margins_mm": {"top": 50, "left": 40, "right": 15, "bottom": 20}}
     )
     document = pdfplumber.open(io.BytesIO(render(SAMPLE, brand)))
     page = document.pages[0]
-    left_edge = min(c["x0"] for c in page.chars)
-    top_edge = min(c["top"] for c in page.chars)
+    title = chars_of(document, "Site Safety Checklist")[0]
 
     assert (page.width, page.height) == (612, 792)
-    assert left_edge == pytest.approx(40 * 72 / 25.4, abs=1)
-    assert top_edge >= 30 * 72 / 25.4
+    assert title["x0"] == pytest.approx(40 * 72 / 25.4, abs=1)
+    assert 50 * 72 / 25.4 <= title["top"] < 50 * 72 / 25.4 + title["size"]
 
 
 def test_long_document_flows_onto_more_pages() -> None:
@@ -194,7 +193,7 @@ def test_empty_document_renders_one_blank_page() -> None:
     document = pdfplumber.open(io.BytesIO(render("", make_brand())))
 
     assert len(document.pages) == 1
-    assert document.pages[0].extract_text() == ""
+    assert document.pages[0].extract_text().splitlines() == ["Fernleaf Studio", "Page 1 of 1"]
 
 
 def test_same_inputs_give_identical_bytes() -> None:

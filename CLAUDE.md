@@ -7,6 +7,8 @@ branded, multi-page PDFs on ReportLab Platypus. Public portfolio piece: code mus
 
 - `uv sync`: install runtime and dev dependencies
 - `uv run pytest`: run tests
+- `BRANDPDF_UPDATE_SNAPSHOTS=1 uv run pytest`: accept current output as the new visual snapshots
+  (a deliberate step: look at the new PNGs in `tests/snapshots/` before committing them)
 - `uv run ruff check . && uv run ruff format .`: lint and format
 - `uv run brandpdf --help`: run the CLI
 
@@ -17,6 +19,8 @@ Three layers, each testable on its own:
 1. `parse.py`: Markdown (markdown-it-py) to a list of plain intermediate blocks. No ReportLab imports.
 2. `flowables.py`: blocks to Platypus flowables, styled from the `Brand`.
 3. `letterhead.py`: draws the letterhead and footer on each page via page-template callbacks.
+   Image backgrounds are drawn by ReportLab; PDF backgrounds are merged underneath with pypdf.
+   Footers ("Page 2 of 5") are drawn by `NumberedCanvas` once the page count is known.
 
 `brand.py` holds the pydantic brand-kit model and loader. `render.py` exposes the public
 `render(markdown, brand) -> bytes`. `cli.py` is a thin Typer layer over `render`.

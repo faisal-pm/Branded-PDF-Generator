@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 import yaml
+from PIL import Image, UnidentifiedImageError
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -25,6 +26,8 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from pypdf import PdfReader
+from pypdf.errors import PyPdfError
 from reportlab.lib.pagesizes import A4, A5, LEGAL, LETTER
 from reportlab.lib.units import mm
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
@@ -92,7 +95,28 @@ def _resolve_file(value: Any, info: ValidationInfo, suffixes: tuple[str, ...]) -
     path = (Path(base_dir) / path).resolve()
     if not path.is_file():
         raise ValueError(f"file not found: {path}")
+    if path.suffix.lower() == ".pdf":
+        _check_pdf(path)
+    elif path.suffix.lower() in IMAGE_SUFFIXES:
+        _check_image(path)
     return path
+
+
+def _check_pdf(path: Path) -> None:
+    try:
+        pages = len(PdfReader(path).pages)
+    except (PyPdfError, OSError, ValueError, KeyError):
+        pages = 0
+    if pages == 0:
+        raise ValueError(f"{path} is not a readable PDF")
+
+
+def _check_image(path: Path) -> None:
+    try:
+        with Image.open(path) as image:
+            image.verify()
+    except (UnidentifiedImageError, OSError, SyntaxError):
+        raise ValueError(f"{path} is not a readable PNG or JPEG image") from None
 
 
 class _Model(BaseModel):

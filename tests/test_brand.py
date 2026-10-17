@@ -31,6 +31,8 @@ def kit_dir(tmp_path: Path) -> Path:
     Image.new("RGB", (60, 85), "white").save(tmp_path / "letterhead.png")
     (tmp_path / "notes.txt").write_text("not a letterhead")
     (tmp_path / "fonts" / "Broken.ttf").write_bytes(b"definitely not a font")
+    (tmp_path / "broken.pdf").write_bytes(b"%PDF-1.4 truncated")
+    (tmp_path / "broken.png").write_bytes(b"not really a png")
     return tmp_path
 
 
@@ -185,6 +187,16 @@ def test_parse_brand_accepts_a_mapping(kit_dir: Path) -> None:
             ("", "letterhead:\n  first_page: notes.txt\n"),
             ["letterhead.first_page: 'notes.txt' must be a .pdf, .png, .jpg or .jpeg file"],
             id="wrong-letterhead-type",
+        ),
+        pytest.param(
+            ("", "letterhead:\n  first_page: broken.pdf\n"),
+            ["letterhead.first_page:", "broken.pdf is not a readable PDF"],
+            id="corrupt-letterhead-pdf",
+        ),
+        pytest.param(
+            ("", "logo: broken.png\n"),
+            ["logo:", "broken.png is not a readable PNG or JPEG image"],
+            id="corrupt-logo",
         ),
         pytest.param(
             ("", "page:\n  size: Tabloid\n"),
