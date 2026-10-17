@@ -1,0 +1,25 @@
+# Tidewell Community Health: a fictional community clinic.
+# Supplied PNG letterhead on every page, OFL fonts, US Letter.
+
+name: Tidewell Community Health
+
+colors:
+  primary: "#0F6E7A"
+  secondary: "#A7D7D9"
+  accent: "#E4572E"
+  text: "#222222"
+
+fonts:
+  heading: ../fonts/pt-sans/PT_Sans-Web-Bold.ttf
+  body: ../fonts/pt-sans/PT_Sans-Web-Regular.ttf
+
+contact:
+  phone: "+00 1632 960 777"
+  email: clinic@tidewell.example
+
+page:
+  size: Letter
+  margins_mm: {top: 40, right: 20, bottom: 30, left: 20}
+
+letterhead:
+  first_page: letterhead.png

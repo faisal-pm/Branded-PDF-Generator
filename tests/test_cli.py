@@ -100,6 +100,7 @@ def test_init_defaults_to_brand_yaml_in_the_current_folder(
 
     assert result.exit_code == 0
     assert (tmp_path / "brand.yaml").is_file()
+    assert "Edit it, then run: brandpdf build doc.md\n" in result.output
 
 
 def test_init_refuses_to_overwrite_without_force(tmp_path: Path) -> None:

@@ -11,6 +11,9 @@ branded, multi-page PDFs on ReportLab Platypus. Public portfolio piece: code mus
   (a deliberate step: look at the new PNGs in `tests/snapshots/` before committing them)
 - `uv run ruff check . && uv run ruff format .`: lint and format
 - `uv run brandpdf --help`: run the CLI
+- `uv run python scripts/build_examples.py`: rebuild example PDFs and README previews after any
+  rendering change (tests fail if committed example PDFs are stale)
+- `uv run python scripts/make_example_assets.py`: redraw the fictional logos and letterheads
 
 ## Architecture
 

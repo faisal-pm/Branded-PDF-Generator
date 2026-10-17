@@ -1,0 +1,26 @@
+# Kestrel Labs: a fictional robotics test laboratory.
+# Supplied PDF letterheads (first page and continuation), OFL fonts, A4.
+
+name: Kestrel Labs
+
+colors:
+  primary: "#1B2A41"
+  secondary: "#6C8EBF"
+  accent: "#F25F3A"
+  text: "#1B1F24"
+
+fonts:
+  heading: ../fonts/poppins/Poppins-SemiBold.ttf
+  body: ../fonts/poppins/Poppins-Regular.ttf
+
+contact:
+  email: labs@kestrel.example
+  website: kestrel.example
+
+page:
+  size: A4
+  margins_mm: {top: 42, right: 18, bottom: 20, left: 18}
+
+letterhead:
+  first_page: letterhead-first.pdf
+  continuation: letterhead-continuation.pdf

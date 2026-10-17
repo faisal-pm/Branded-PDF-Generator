@@ -130,8 +130,9 @@ class Letterhead:
                 canvas.drawString(left, FOOTER_TEXT, line)
             canvas.drawRightString(right, FOOTER_TEXT, numbering)
         else:
-            # The supplied letterhead owns the margins; keep the number small and low.
-            canvas.drawRightString(right, max(margins.bottom * mm / 2, 6 * mm), numbering)
+            # The supplied letterhead owns the margins; tuck the number just under the text area,
+            # clear of any artwork the letterhead puts along the foot of the page.
+            canvas.drawRightString(right, max(margins.bottom * mm - 7 * mm, 5 * mm), numbering)
         canvas.restoreState()
 
     def merge_pdf_backgrounds(self, pdf: bytes) -> bytes:

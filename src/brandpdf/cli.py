@@ -114,4 +114,5 @@ def init(
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(starter_kit(), encoding="utf-8")
     typer.echo(f"Wrote starter brand kit to {path}")
-    typer.echo(f"Edit it, then run: brandpdf build doc.md --brand {path} -o out.pdf")
+    brand_option = "" if path == Path("brand.yaml") else f" --brand {path}"
+    typer.echo(f"Edit it, then run: brandpdf build doc.md{brand_option}")

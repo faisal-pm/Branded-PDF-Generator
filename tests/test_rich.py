@@ -328,3 +328,12 @@ def test_snapshot_rich_blocks(tmp_path: Path) -> None:
     pdf = render(markdown, make_brand(tmp_path, logo="logo.png"), base_dir=tmp_path)
 
     assert_matches_snapshot(pdf, "rich-blocks")
+
+
+def test_long_callout_continues_onto_the_next_page() -> None:
+    body = "\n>\n".join(f"> Point {n}: keep to the marked walkways." for n in range(1, 81))
+
+    document = open_pdf(render(f"> [!WARNING]\n{body}\n", make_brand()))
+
+    assert len(document.pages) >= 2
+    assert "Point 80: keep to the marked walkways." in document.pages[-1].extract_text()

@@ -1,0 +1,28 @@
+# Fernleaf Studio: a fictional landscape design studio.
+# Generated letterhead (no letterhead file), OFL fonts, A4.
+
+name: Fernleaf Studio
+
+colors:
+  primary: "#2E5E4E"
+  secondary: "#8FB9A8"
+  accent: "#E08A3C"
+  text: "#1F2A24"
+
+fonts:
+  heading: ../fonts/dm-serif-display/DMSerifDisplay-Regular.ttf
+  body: ../fonts/lato/Lato-Regular.ttf
+
+logo: logo.png
+
+contact:
+  address: |
+    12 Willow Lane
+    Brookfield BF4 2LT
+  phone: "+00 1632 960 418"
+  email: hello@fernleaf.example
+  website: fernleaf.example
+
+page:
+  size: A4
+  margins_mm: {top: 25, right: 20, bottom: 22, left: 20}
