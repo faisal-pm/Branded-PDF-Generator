@@ -1,14 +1,15 @@
 [project]
 name = "brandpdf"
-version = "0.1.0.dev0"
+version = "1.0.0"
 description = "Turn a brand kit and Markdown into consistently branded, multi-page PDFs."
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Md Faisal Ahamed" }]
 requires-python = ">=3.10"
+keywords = ["pdf", "markdown", "branding", "letterhead", "reportlab", "documents"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
@@ -28,6 +29,12 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.urls]
+Homepage = "https://github.com/faisal-pm/Branded-PDF-Generator"
+Documentation = "https://github.com/faisal-pm/Branded-PDF-Generator/tree/main/docs"
+Issues = "https://github.com/faisal-pm/Branded-PDF-Generator/issues"
+Changelog = "https://github.com/faisal-pm/Branded-PDF-Generator/blob/main/CHANGELOG.md"
+
 [project.scripts]
 brandpdf = "brandpdf.cli:app"
 
@@ -38,6 +45,9 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.6",
 ]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github", "/CLAUDE.md", "/.python-version"]
 
 [build-system]
 requires = ["hatchling>=1.26"]
