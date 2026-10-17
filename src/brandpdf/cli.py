@@ -8,7 +8,8 @@ from typing import Annotated
 import typer
 
 from brandpdf import __version__
-from brandpdf.brand import starter_kit
+from brandpdf.brand import BrandError, load_brand, starter_kit
+from brandpdf.render import render
 
 app = typer.Typer(
     help="Turn a brand kit and Markdown into branded PDFs.",
@@ -23,9 +24,9 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-def _not_implemented(command: str) -> None:
-    typer.echo(f"Error: 'brandpdf {command}' is not implemented yet.", err=True)
-    raise typer.Exit(code=1)
+def _fail(message: str) -> typer.Exit:
+    typer.echo(message, err=True)
+    return typer.Exit(code=1)
 
 
 @app.callback()
@@ -46,11 +47,28 @@ def main(
 @app.command()
 def build(
     source: Annotated[Path, typer.Argument(help="Markdown file to render.")],
-    brand: Annotated[Path, typer.Option("--brand", "-b", help="Brand kit YAML file.")],
-    output: Annotated[Path, typer.Option("--output", "-o", help="Output PDF path.")],
+    brand: Annotated[Path, typer.Option("--brand", "-b", help="Brand kit YAML file.")] = Path(
+        "brand.yaml"
+    ),
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Output PDF path. Defaults to the source with .pdf."),
+    ] = None,
 ) -> None:
     """Render a Markdown document to a branded PDF."""
-    _not_implemented("build")
+    try:
+        kit = load_brand(brand)
+    except BrandError as exc:
+        raise _fail(str(exc)) from None
+    try:
+        markdown = source.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise _fail(f"Error: document not found: {source}") from None
+
+    target = output or source.with_suffix(".pdf")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(render(markdown, kit))
+    typer.echo(f"Wrote {target}")
 
 
 @app.command()
@@ -64,8 +82,7 @@ def init(
 ) -> None:
     """Scaffold a starter brand kit."""
     if path.exists() and not force:
-        typer.echo(f"Error: {path} already exists. Use --force to overwrite it.", err=True)
-        raise typer.Exit(code=1)
+        raise _fail(f"Error: {path} already exists. Use --force to overwrite it.")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(starter_kit(), encoding="utf-8")
     typer.echo(f"Wrote starter brand kit to {path}")

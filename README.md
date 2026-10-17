@@ -2,24 +2,30 @@
 
 Turn a brand kit and Markdown into consistently branded, multi-page PDFs.
 
-> **Status: pre-alpha.** Brand kits load and validate; rendering is not implemented yet.
+> **Status: pre-alpha.** Plain documents render (headings, paragraphs, lists, emphasis, links,
+> code). Letterheads, page numbers, tables, checklists and callouts are coming next.
 
-## What it will do
+## Usage
 
 Write `brand.yaml` once (colours, fonts, logo, letterhead, contact details), write documents in
 Markdown, and run one command:
 
 ```sh
 brandpdf build doc.md --brand brand.yaml -o out.pdf
+brandpdf build doc.md     # uses ./brand.yaml and writes doc.pdf
 ```
 
 Or from Python:
 
 ```python
-from brandpdf import render
+from pathlib import Path
 
-pdf_bytes = render(markdown_text, brand)
+from brandpdf import load_brand, render
+
+pdf_bytes = render(Path("doc.md").read_text(), load_brand("brand.yaml"))
 ```
+
+The same Markdown and brand kit always produce a byte-identical PDF.
 
 ## Brand kit
 
