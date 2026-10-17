@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from brandpdf import __version__
+from brandpdf.brand import starter_kit
 
 app = typer.Typer(
     help="Turn a brand kit and Markdown into branded PDFs.",
@@ -57,6 +58,15 @@ def init(
     path: Annotated[Path, typer.Argument(help="Where to write the brand kit.")] = Path(
         "brand.yaml"
     ),
+    force: Annotated[
+        bool, typer.Option("--force", "-f", help="Overwrite an existing file.")
+    ] = False,
 ) -> None:
     """Scaffold a starter brand kit."""
-    _not_implemented("init")
+    if path.exists() and not force:
+        typer.echo(f"Error: {path} already exists. Use --force to overwrite it.", err=True)
+        raise typer.Exit(code=1)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(starter_kit(), encoding="utf-8")
+    typer.echo(f"Wrote starter brand kit to {path}")
+    typer.echo(f"Edit it, then run: brandpdf build doc.md --brand {path} -o out.pdf")

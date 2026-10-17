@@ -1,0 +1,34 @@
+# brandpdf brand kit. Every document rendered with this file inherits these settings.
+# Paths are relative to this file. Quote hex colours: in YAML a bare # starts a comment.
+
+name: Your Organisation
+
+colors:
+  primary: "#1F4E79"    # header band and headings
+  secondary: "#4A90C2"  # table headers and rules
+  accent: "#F2A541"     # tick boxes, callouts and highlights
+  text: "#1A1A1A"
+  background: "#FFFFFF"
+
+fonts:
+  # A built-in PDF font (Helvetica, Times-Roman or Courier, with -Bold, -Oblique/-Italic
+  # variants) or a path to a .ttf file, such as fonts/SourceSans3-Bold.ttf
+  heading: Helvetica-Bold
+  body: Helvetica
+
+# logo: logo.png  # PNG or JPEG, shown in the generated letterhead
+
+contact:
+  address: 1 Example Street, Sampletown
+  phone: "+00 0000 0000"
+  email: hello@example.org
+  website: example.org
+
+page:
+  size: A4  # A4, A5, Letter or Legal
+  margins_mm: {top: 25, right: 20, bottom: 25, left: 20}
+
+# Use your own letterhead instead of the one generated from this kit:
+# letterhead:
+#   first_page: letterhead.pdf         # PDF, PNG or JPEG drawn behind page 1
+#   continuation: letterhead-cont.pdf  # drawn behind pages 2 onwards
