@@ -2,8 +2,8 @@
 
 Turn a brand kit and Markdown into consistently branded, multi-page PDFs.
 
-> **Status: pre-alpha.** Documents render with generated or supplied letterheads and page
-> numbers. Tables, checklists and callouts are coming next.
+> **Status: pre-alpha.** Feature-complete for v1 (letterheads, page numbers, tables, checklists,
+> callouts, images, front matter); examples and full docs are next.
 
 ## Usage
 

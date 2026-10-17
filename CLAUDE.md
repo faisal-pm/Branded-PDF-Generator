@@ -22,8 +22,14 @@ Three layers, each testable on its own:
    Image backgrounds are drawn by ReportLab; PDF backgrounds are merged underneath with pypdf.
    Footers ("Page 2 of 5") are drawn by `NumberedCanvas` once the page count is known.
 
-`brand.py` holds the pydantic brand-kit model and loader. `render.py` exposes the public
-`render(markdown, brand) -> bytes`. `cli.py` is a thin Typer layer over `render`.
+`brand.py` holds the pydantic brand-kit model and loader. `errors.py` turns pydantic errors into
+plain-language problems (`BrandError`, `DocumentError`). `render.py` exposes the public
+`render(markdown, brand, *, base_dir=None) -> bytes`: it splits front matter, applies brand
+overrides, and builds the page templates. `cli.py` is a thin Typer layer over `render`.
+
+Layout gotchas: tables, checklists, quotes and callouts are ReportLab `Table`s (callouts and quotes
+use `splitInRow=1` so they can break across pages). Headings use `CondPageBreak`, not
+`keepWithNext`, which would drag a long table onto the next page with its heading.
 
 ## Rules
 

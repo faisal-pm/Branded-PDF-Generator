@@ -2,9 +2,18 @@
 
 from importlib.metadata import version
 
-from brandpdf.brand import Brand, BrandError, load_brand, parse_brand
+from brandpdf.brand import Brand, load_brand, parse_brand
+from brandpdf.errors import BrandError, DocumentError
 from brandpdf.render import render
 
 __version__ = version("brandpdf")
 
-__all__ = ["Brand", "BrandError", "__version__", "load_brand", "parse_brand", "render"]
+__all__ = [
+    "Brand",
+    "BrandError",
+    "DocumentError",
+    "__version__",
+    "load_brand",
+    "parse_brand",
+    "render",
+]

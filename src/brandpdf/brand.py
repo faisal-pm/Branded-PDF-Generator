@@ -7,7 +7,6 @@ resolved against the folder that holds the kit file, so a kit and its assets can
 
 from __future__ import annotations
 
-import difflib
 import re
 from collections.abc import Mapping
 from importlib.resources import files
@@ -32,6 +31,10 @@ from reportlab.lib.pagesizes import A4, A5, LEGAL, LETTER
 from reportlab.lib.units import mm
 from reportlab.pdfbase.ttfonts import TTFError, TTFont
 
+from brandpdf.errors import BrandError, describe
+
+__all__ = ["Brand", "BrandError", "load_brand", "parse_brand", "override_brand"]
+
 BUILTIN_FONTS = (
     "Helvetica",
     "Helvetica-Bold",
@@ -53,16 +56,6 @@ IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg")
 LETTERHEAD_SUFFIXES = (".pdf", *IMAGE_SUFFIXES)
 
 _HEX_RE = re.compile(r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})")
-
-
-class BrandError(Exception):
-    """A brand kit could not be loaded. ``problems`` lists each issue found."""
-
-    def __init__(self, source: str, problems: list[str]) -> None:
-        self.source = source
-        self.problems = problems
-        header = f"Invalid brand kit {source}:" if source else "Invalid brand kit:"
-        super().__init__("\n".join([header, *(f"  - {p}" for p in problems)]))
 
 
 def _hex_colour(value: Any) -> str:
@@ -229,7 +222,7 @@ def parse_brand(data: Mapping[str, Any], base_dir: str | Path = ".", source: str
     try:
         return Brand.model_validate(data, context={"base_dir": Path(base_dir)})
     except ValidationError as exc:
-        raise BrandError(source, [_describe(error) for error in exc.errors()]) from None
+        raise BrandError(source, [describe(error, Brand) for error in exc.errors()]) from None
 
 
 def load_brand(path: str | Path) -> Brand:
@@ -260,46 +253,19 @@ def starter_kit() -> str:
     return files("brandpdf").joinpath("starter_brand.yaml").read_text(encoding="utf-8")
 
 
-def _describe(error: Any) -> str:
-    """Turn one pydantic error into a line a non-Python user can act on."""
-    loc = tuple(str(part) for part in error["loc"])
-    kind = error["type"]
-    ctx = error.get("ctx", {})
-
-    if kind == "extra_forbidden":
-        loc, key = loc[:-1], loc[-1]
-        allowed = _keys_at(loc)
-        match = difflib.get_close_matches(key, allowed, n=1)
-        hint = f"did you mean '{match[0]}'?" if match else f"allowed: {', '.join(allowed)}"
-        message = f"unknown key '{key}' ({hint})"
-    elif kind == "missing":
-        message = "required key missing"
-    elif kind == "value_error":
-        message = str(ctx["error"])
-    elif kind == "literal_error":
-        message = f"{error['input']!r} is not one of {ctx['expected']}"
-    elif kind == "greater_than_equal":
-        message = f"must be at least {ctx['ge']:g} (got {error['input']:g})"
-    elif kind == "string_too_short":
-        message = "must not be empty"
-    elif kind in ("float_parsing", "float_type"):
-        message = f"expected a number, got {error['input']!r}"
-    elif kind == "string_type":
-        message = f"expected text, got {error['input']!r}"
-    elif kind == "model_type":
-        message = f"expected a section of keys ({', '.join(_keys_at(loc))}), got {error['input']!r}"
-    else:
-        message = error["msg"]
-
-    return f"{'.'.join(loc)}: {message}" if loc else message
+def override_brand(brand: Brand, overrides: Mapping[str, Any], base_dir: str | Path = ".") -> Brand:
+    """A copy of ``brand`` with ``overrides`` deep-merged in and validated again (F9)."""
+    if not overrides:
+        return brand
+    merged = _deep_merge(brand.model_dump(), overrides)
+    return parse_brand(merged, base_dir=base_dir, source="(front matter brand overrides)")
 
 
-def _keys_at(loc: tuple[str, ...]) -> list[str]:
-    """The keys allowed at a location in the kit, used to suggest a fix for a typo."""
-    model: type[BaseModel] = Brand
-    for part in loc:
-        annotation = model.model_fields[part].annotation if part in model.model_fields else None
-        if not (isinstance(annotation, type) and issubclass(annotation, BaseModel)):
-            return []
-        model = annotation
-    return list(model.model_fields)
+def _deep_merge(base: dict[str, Any], overrides: Mapping[str, Any]) -> dict[str, Any]:
+    merged = dict(base)
+    for key, value in overrides.items():
+        if isinstance(value, Mapping) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged

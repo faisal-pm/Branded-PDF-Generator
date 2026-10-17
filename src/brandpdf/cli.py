@@ -1,4 +1,4 @@
-"""Command-line interface (F12, F14)."""
+"""Command-line interface (F12, F14): a thin layer over ``load_brand`` and ``render``."""
 
 from __future__ import annotations
 
@@ -8,7 +8,8 @@ from typing import Annotated
 import typer
 
 from brandpdf import __version__
-from brandpdf.brand import BrandError, load_brand, starter_kit
+from brandpdf.brand import Brand, BrandError, load_brand, starter_kit
+from brandpdf.errors import DocumentError
 from brandpdf.render import render
 
 app = typer.Typer(
@@ -46,29 +47,56 @@ def main(
 
 @app.command()
 def build(
-    source: Annotated[Path, typer.Argument(help="Markdown file to render.")],
+    source: Annotated[Path, typer.Argument(help="Markdown file to render, or a folder of them.")],
     brand: Annotated[Path, typer.Option("--brand", "-b", help="Brand kit YAML file.")] = Path(
         "brand.yaml"
     ),
     output: Annotated[
         Path | None,
-        typer.Option("--output", "-o", help="Output PDF path. Defaults to the source with .pdf."),
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output PDF, or output folder when SOURCE is a folder. "
+            "Defaults to beside the source.",
+        ),
     ] = None,
 ) -> None:
-    """Render a Markdown document to a branded PDF."""
+    """Render Markdown to branded PDFs."""
     try:
         kit = load_brand(brand)
     except BrandError as exc:
         raise _fail(str(exc)) from None
-    try:
-        markdown = source.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        raise _fail(f"Error: document not found: {source}") from None
 
-    target = output or source.with_suffix(".pdf")
+    if source.is_dir():
+        documents = sorted(source.glob("*.md"))
+        if not documents:
+            raise _fail(f"Error: no .md files in {source}")
+        folder = output or source
+        results = [_build_one(doc, kit, folder / f"{doc.stem}.pdf") for doc in documents]
+        if not all(results):
+            raise typer.Exit(code=1)
+        return
+
+    if not source.is_file():
+        raise _fail(f"Error: document not found: {source}")
+    if not _build_one(source, kit, output or source.with_suffix(".pdf")):
+        raise typer.Exit(code=1)
+
+
+def _build_one(source: Path, kit: Brand, target: Path) -> bool:
+    """Render one document, reporting problems against its file name. True on success."""
+    try:
+        pdf = render(source.read_text(encoding="utf-8"), kit, base_dir=source.parent)
+    except DocumentError as exc:
+        typer.echo(str(DocumentError(exc.problems, str(source))), err=True)
+        return False
+    except BrandError as exc:
+        typer.echo(f"{source}: {exc}", err=True)
+        return False
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(render(markdown, kit))
+    target.write_bytes(pdf)
     typer.echo(f"Wrote {target}")
+    return True
 
 
 @app.command()

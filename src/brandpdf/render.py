@@ -4,24 +4,39 @@ from __future__ import annotations
 
 import io
 from functools import partial
+from pathlib import Path
 from typing import Any
 
 from reportlab.platypus import BaseDocTemplate, Frame, PageTemplate, Spacer
 
-from brandpdf.brand import Brand
-from brandpdf.flowables import build_styles, to_flowables
+from brandpdf.brand import Brand, override_brand
+from brandpdf.flowables import build_styles, title_block, to_flowables
 from brandpdf.letterhead import DocumentInfo, Letterhead, NumberedCanvas
-from brandpdf.parse import Block, Heading, parse, plain_text
+from brandpdf.parse import Block, Heading, parse_document, plain_text
 
 
-def render(markdown: str, brand: Brand) -> bytes:
+def render(markdown: str, brand: Brand, *, base_dir: str | Path | None = None) -> bytes:
     """Render Markdown with a brand kit and return the PDF as bytes.
 
-    The output is deterministic: the same Markdown and brand kit give byte-identical PDFs.
+    Front matter at the top of ``markdown`` can set a title block, a footer reference and
+    brand overrides. Images and override paths resolve against ``base_dir`` (default: the
+    working directory). The same inputs always give byte-identical PDFs.
+
+    Raises ``DocumentError`` for problems in the document and ``BrandError`` for bad overrides.
     """
-    blocks = parse(markdown)
-    story = to_flowables(blocks, build_styles(brand)) or [Spacer(0, 0)]
-    letterhead = Letterhead(brand, DocumentInfo(title=_title(blocks) or brand.name))
+    folder = Path(base_dir) if base_dir is not None else Path.cwd()
+    document = parse_document(markdown)
+    meta, blocks = document.meta, document.blocks
+    brand = override_brand(brand, meta.brand, base_dir=folder)
+
+    info = DocumentInfo(title=meta.title or _title(blocks) or brand.name, reference=meta.reference)
+    letterhead = Letterhead(brand, info)
+    styles = build_styles(brand)
+    page_height = min(letterhead.content_area(True).height, letterhead.content_area(False).height)
+    story = title_block(meta, styles) + to_flowables(
+        blocks, styles, base_dir=folder, max_image_height=page_height
+    )
+    story = story or [Spacer(0, 0)]
 
     def frame(first_page: bool) -> Frame:
         area = letterhead.content_area(first_page)
@@ -41,7 +56,7 @@ def render(markdown: str, brand: Brand) -> bytes:
         letterhead.draw_page(canvas, canvas.getPageNumber())
 
     buffer = io.BytesIO()
-    document = BaseDocTemplate(
+    template = BaseDocTemplate(
         buffer,
         pagesize=brand.page.dimensions,
         pageTemplates=[
@@ -53,7 +68,7 @@ def render(markdown: str, brand: Brand) -> bytes:
         creator="brandpdf",
         invariant=True,  # fixed timestamps and document ID
     )
-    document.build(story, canvasmaker=partial(NumberedCanvas, footer=letterhead.draw_footer))
+    template.build(story, canvasmaker=partial(NumberedCanvas, footer=letterhead.draw_footer))
     return letterhead.merge_pdf_backgrounds(buffer.getvalue())
 
 
